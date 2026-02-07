@@ -1,0 +1,10 @@
+<?php
+declare(strict_types=1);
+
+header("Content-Type: application/json; charset=UTF-8");
+
+echo json_encode([
+  "ok" => true,
+  "message" => "Hello from PHP API",
+  "time" => date("c"),
+]);
