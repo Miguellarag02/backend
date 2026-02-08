@@ -1,2 +1,3 @@
 src/database/auth.sql
 src/config/config.php
+src/database/my_queris.sql
