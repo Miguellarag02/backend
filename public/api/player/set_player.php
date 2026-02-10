@@ -62,6 +62,30 @@ try {
     }
   }
 
+  $insertPlayerResourcesStmt = $pdo->prepare(
+    "INSERT IGNORE INTO player_resources_card (id_player, id_card, qty)
+     SELECT p.id, rc.id, 0
+     FROM player p
+     JOIN users u ON u.id = p.id_user
+     CROSS JOIN resources_card rc
+     WHERE u.username = :username"
+  );
+  $insertPlayerResourcesStmt->execute([
+    "username" => $username
+  ]);
+
+  $insertPlayerRandomStmt = $pdo->prepare(
+    "INSERT IGNORE INTO player_random_card (id_player, id_card, qty)
+     SELECT p.id, rc.id, 0
+     FROM player p
+     JOIN users u ON u.id = p.id_user
+     CROSS JOIN random_card rc
+     WHERE u.username = :username"
+  );
+  $insertPlayerRandomStmt->execute([
+    "username" => $username
+  ]);
+
   echo json_encode(["ok" => true]);
 } catch (Throwable $e) {
   http_response_code(500);
