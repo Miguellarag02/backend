@@ -300,7 +300,7 @@ INSERT INTO resources_card (id, card_name, current_count, max_count)
 VALUES
     (1, 'Palo',     0, 25),
     (2, 'Oveja',    0, 25),
-    (3, 'Pedrolo',  0, 25),
+    (3, 'Piedra',   0, 25),
     (4, 'Paja',     0, 25),
     (5, 'Arcilla',  0, 25),
     (6, 'desierto', 0, 0);

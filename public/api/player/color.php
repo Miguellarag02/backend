@@ -39,7 +39,7 @@ try {
      JOIN users ON users.id = player.id_user"
   )->fetchAll();
 
-  echo json_encode(["ok" => true]);
+  echo json_encode($rows);
 } catch (Throwable $e) {
   http_response_code(500);
   echo json_encode(["ok" => false, "message" => "Database error"]);
