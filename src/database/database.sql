@@ -252,7 +252,8 @@ CREATE INDEX idx_prand_card   ON player_random_card(id_card);
 -- =========================
 CREATE TABLE IF NOT EXISTS building (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL UNIQUE
+  name VARCHAR(50) NOT NULL UNIQUE,
+  max_count INT NOT NULL
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -286,23 +287,23 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =========================
 -- Insertar datos BUILDING
 -- =========================
-INSERT INTO building (id, name)
+INSERT INTO building (id, name, max_count)
 VALUES
-    (1, 'Carretera'),
-    (2, 'Pueblo'),
-    (3, 'Ciudad'),
-    (4, 'Gamblear');
+    (1, 'Carretera',  15),
+    (2, 'Pueblo',     5),
+    (3, 'Ciudad',     4),
+    (4, 'Gamblear',   25);
 
 -- =========================
 -- Insertar datos RESOURCES_CARD
 -- =========================
 INSERT INTO resources_card (id, card_name, current_count, max_count)
 VALUES
-    (1, 'Palo',     0, 25),
-    (2, 'Oveja',    0, 25),
-    (3, 'Piedra',   0, 25),
-    (4, 'Paja',     0, 25),
-    (5, 'Arcilla',  0, 25),
+    (1, 'Palo',     0, 19),
+    (2, 'Oveja',    0, 19),
+    (3, 'Piedra',   0, 19),
+    (4, 'Paja',     0, 19),
+    (5, 'Arcilla',  0, 19),
     (6, 'desierto', 0, 0);
 
 -- =========================

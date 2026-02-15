@@ -13,20 +13,38 @@ require_once dirname(__DIR__) . "/database.php";
 
 try {
   $town_rows = db()->query(
-      "SELECT tw.id, tw.pos_x, tw.pos_y, tw.pos_z, py.color
-        FROM town as tw
-        JOIN player as py
-        WHERE tw.player_id IS NOT NULL
-            AND py.id = tw.player_id"
+      "SELECT 
+          tw.id, 
+          tw.level,
+          tw.pos_x, 
+          tw.pos_y, 
+          tw.pos_z, 
+          py.color, 
+          u.username,
+          (tw.player_id IS NOT NULL) AS is_builded
+      FROM town AS tw
+      LEFT JOIN player AS py 
+          ON py.id = tw.player_id
+      LEFT JOIN users AS u 
+          ON u.id = py.id_user;"
   )->fetchAll(PDO::FETCH_ASSOC);
 
   $path_rows = db()->query(
-      "SELECT twc.pos_x, twc.pos_y, twc.pos_z, twc.rot_x, twc.rot_y, twc.rot_z, twc.from_town_id, twc.to_town_id, py.color
-        FROM town_conections as twc
-        JOIN player as py
-        WHERE twc.player_id IS NOT NULL
-            AND twc.from_town_id < twc.to_town_id
-            AND py.id = twc.player_id"
+      "SELECT twc.id, 
+            twc.pos_x,
+            twc.pos_y,
+            twc.pos_z,
+            twc.rot_x,
+            twc.rot_y,
+            twc.rot_z,
+            twc.from_town_id,
+            twc.to_town_id,
+            py.color,
+            (twc.player_id IS NOT NULL) AS is_builded
+          FROM town_conections as twc
+          LEFT JOIN player AS py 
+              ON py.id = twc.player_id
+          WHERE twc.from_town_id < twc.to_town_id;"
   )->fetchAll(PDO::FETCH_ASSOC);
 
   echo json_encode([
