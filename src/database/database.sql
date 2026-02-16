@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS random_card;
 DROP TABLE IF EXISTS resources_card;
 DROP TABLE IF EXISTS hexagon;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS trade_notifications;
 
 -- =========================    
 -- USERS
@@ -37,6 +38,8 @@ CREATE TABLE IF NOT EXISTS player (
   id_user INT NOT NULL UNIQUE,
   color VARCHAR(10) NOT NULL DEFAULT "",
   actives_knights INT NOT NULL DEFAULT 0,
+  largest_path BOOLEAN NOT NULL DEFAULT false,
+  biggest_army BOOLEAN NOT NULL DEFAULT false,
 
   CONSTRAINT fk_player_user
     FOREIGN KEY (id_user) REFERENCES users(id)
@@ -281,6 +284,32 @@ CREATE TABLE IF NOT EXISTS building_resources_card (
 
 CREATE INDEX idx_brc_building ON building_resources_card(id_building);
 CREATE INDEX idx_brc_card     ON building_resources_card(id_card);
+
+-- =========================
+-- TRADE NOTIFICATIONS
+-- =========================
+CREATE TABLE IF NOT EXISTS trade_notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  from_id_player INT NOT NULL,
+  to_id_player INT NOT NULL,
+  from_resource_ids JSON NULL,
+  to_resource_ids JSON NULL,
+
+  CONSTRAINT fk_from_player
+    FOREIGN KEY (from_id_player) REFERENCES player(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  
+  CONSTRAINT fk_to_player
+    FOREIGN KEY (to_id_player) REFERENCES player(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_from_player ON trade_notifications(from_id_player);
+CREATE INDEX idx_to_player ON trade_notifications(to_id_player);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

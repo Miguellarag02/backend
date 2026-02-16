@@ -36,7 +36,7 @@ try {
             JOIN resources_card rc ON rc.id = prc.id_card
             WHERE prc.id_player = p.id
               AND rc.id <> 6
-            GROUP BY rc.id, rc.card_name, prc.qty
+            GROUP BY rc.id
           ) x
         ), JSON_ARRAY()) AS resource_cards,
         COALESCE((
@@ -48,7 +48,7 @@ try {
             FROM player_random_card pr
             JOIN random_card r ON r.id = pr.id_card
             WHERE pr.id_player = p.id
-            GROUP BY r.id, r.card_name, pr.qty
+            GROUP BY r.id
           ) y
         ), JSON_ARRAY()) AS random_cards
       FROM users u
@@ -104,10 +104,15 @@ try {
   ]);
   $available = $stmt->fetch(PDO::FETCH_ASSOC);
 
+  // Get current tarde notification
+  $getTn = $pdo->prepare("SELECT * FROM trade_notifications tn ORDER BY tn.id DESC");
+  $getTn->execute();
+  $tns = $getTn->fetchAll(PDO::FETCH_ASSOC);
  
   echo json_encode([
     "ok" => true,
     "player" => [
+      "id" => (int)$player["player_id"],
       "color" => $player["color"],
       "resource_cards" => $player["resource_cards"],
       "random_cards" => $player["random_cards"],
@@ -118,6 +123,7 @@ try {
       3 => (int)$available["available_city"],
       4 => (int)$available["available_random_card"],
     ],
+    "trade_notification" => $tns
   ], JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {
@@ -125,6 +131,6 @@ try {
   echo json_encode([
     "ok" => false,
     "message" => "Database error",
-    "debug" => $e->getMessage() // activa solo en dev
+    //"debug" => $e->getMessage() // activa solo en dev
   ]);
 }
