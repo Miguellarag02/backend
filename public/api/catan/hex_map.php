@@ -13,7 +13,7 @@ require_once dirname(__DIR__) . "/database.php";
 
 try {
   $rows = db()->query(
-    "SELECT letter, dice_number, pos_x, pos_y, pos_z, is_thief, thief_pos_x, thief_pos_y, thief_pos_z, thief_rot_z, resource_id, letter_pos_x, letter_pos_y, letter_pos_z
+    "SELECT id, letter, dice_number, pos_x, pos_y, pos_z, is_thief, thief_pos_x, thief_pos_y, thief_pos_z, thief_rot_z, resource_id, letter_pos_x, letter_pos_y, letter_pos_z
      FROM hexagon"
   )->fetchAll();
 
