@@ -125,9 +125,22 @@ try {
   $tns = $getTn->fetchAll(PDO::FETCH_ASSOC);
 
   // Get current turn and order
-  $getGm = $pdo->prepare("SELECT * FROM game_match LIMIT 1");
+  $getGm = $pdo->prepare("
+    SELECT * 
+      FROM game_match 
+      LIMIT 1
+  ");
   $getGm->execute();
   $gm = $getGm->fetch(PDO::FETCH_ASSOC);
+
+  // Get n_players
+  $getNumPlyer = $pdo->prepare("
+    SELECT COUNT(*) AS n_players
+      FROM player
+      WHERE player.is_playing = TRUE
+  ");
+  $getNumPlyer->execute();
+  $numPlayer = $getNumPlyer->fetch(PDO::FETCH_ASSOC);
  
   echo json_encode([
     "ok" => true,
@@ -145,7 +158,8 @@ try {
       4 => (int)$available["available_random_card"],
     ],
     "trade_notification" => $tns,
-    "game_match" => $gm
+    "game_match" => $gm,
+    "n_players" => $numPlayer
   ], JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {

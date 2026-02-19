@@ -36,8 +36,8 @@ try {
         JOIN player ON users.id = player.id_user
         JOIN player_resources_card AS prc ON prc.id_player = player.id
         JOIN resources_card AS rc ON rc.id = prc.id_card
-        WHERE rc.id != 6
-        GROUP BY users.id, users.username, player.color"
+        WHERE rc.id != 6 AND player.is_playing = TRUE
+        GROUP BY player.current_order, player.id"
   );
   $stmt->execute([]);
   $rows = $stmt->fetchAll();
