@@ -10,46 +10,23 @@ DROP TABLE IF EXISTS player_resources_card;
 DROP TABLE IF EXISTS town_conections;
 DROP TABLE IF EXISTS hexagon_conections;
 DROP TABLE IF EXISTS town;
-DROP TABLE IF EXISTS player;
 DROP TABLE IF EXISTS building;
 DROP TABLE IF EXISTS random_card;
 DROP TABLE IF EXISTS resources_card;
 DROP TABLE IF EXISTS hexagon;
-DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS trade_notifications;
+DROP TABLE IF EXISTS game_match;
 
 -- =========================    
--- USERS
+-- GAME_MATCH
 -- =========================
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS game_match (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(100) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  user_image VARCHAR(255) NULL,
-  victories INT NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  turn INT NOT NULL DEFAULT 0,
+  round INT NOT NULL DEFAULT 0,
+  min_player INT NOT NULL DEFAULT 3,
+  max_player INT NOT NULL DEFAULT 4
 ) ENGINE=InnoDB;
-
--- =========================
--- PLAYER (1-1 con users)
--- =========================
-CREATE TABLE IF NOT EXISTS player (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  id_user INT NOT NULL UNIQUE,
-  color VARCHAR(10) NOT NULL DEFAULT "",
-  actives_knights INT NOT NULL DEFAULT 0,
-  largest_path BOOLEAN NOT NULL DEFAULT false,
-  biggest_army BOOLEAN NOT NULL DEFAULT false,
-
-  CONSTRAINT fk_player_user
-    FOREIGN KEY (id_user) REFERENCES users(id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-
-  CHECK (actives_knights >= 0)
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_player_user ON player(id_user);
 
 -- =========================
 -- HEXAGON
@@ -312,6 +289,12 @@ CREATE INDEX idx_from_player ON trade_notifications(from_id_player);
 CREATE INDEX idx_to_player ON trade_notifications(to_id_player);
 
 SET FOREIGN_KEY_CHECKS = 1;
+-- =========================
+-- Insertar datos GAME_MATCH
+-- =========================
+INSERT INTO game_match (id, turn, max_player, min_player)
+VALUES
+    (1, 0, 4, 3);
 
 -- =========================
 -- Insertar datos BUILDING
@@ -393,60 +376,60 @@ VALUES
 -- =========================
 INSERT INTO town (id, player_id, level, pos_x, pos_y, pos_z, resource_trade_id, resource_trade_qty)
 VALUES
-    (1,   NULL, 0,  -6.175, 0.626, 4.518,   NULL, NULL),
-    (2,   NULL, 0,  -6.89,  0.626, 3.044,   NULL, NULL),
+    (1,   NULL, 0,  -6.175, 0.626, 4.518,   NULL, 4   ),
+    (2,   NULL, 0,  -6.89,  0.626, 3.044,   NULL, 4   ),
     (3,   NULL, 0,  -6.179, 0.626, 1.543,   1,    2   ),
     (4,   NULL, 0,  -6.903, 0.626, -0.103,  1,    2   ),
-    (5,   NULL, 0,  -6.159, 0.626, -1.467,  NULL, NULL),
-    (6,   NULL, 0,  -6.894, 0.626, -2.961,  6,    3   ),
-    (7,   NULL, 0,  -6.037, 0.626, -4.419,  6,    3   ),
-    (8,   NULL, 0,  -4.39,  0.626, -4.52,   NULL, NULL),
+    (5,   NULL, 0,  -6.159, 0.626, -1.467,  NULL, 4   ),
+    (6,   NULL, 0,  -6.894, 0.626, -2.961,  NULL, 3   ),
+    (7,   NULL, 0,  -6.037, 0.626, -4.419,  NULL, 3   ),
+    (8,   NULL, 0,  -4.39,  0.626, -4.52,   NULL, 4   ),
     (9,   NULL, 0,  -3.479, 0.626, -6.074,  5,    2   ),
     (10,  NULL, 0,  -1.777, 0.626, -6.058,  5,    2   ),
-    (11,  NULL, 0,  -0.741, 0.626, -7.519,  NULL, NULL),    
-    (12,  NULL, 0,  0.833,  0.626, -7.514,  NULL, NULL),
+    (11,  NULL, 0,  -0.741, 0.626, -7.519,  NULL, 4   ),    
+    (12,  NULL, 0,  0.833,  0.626, -7.514,  NULL, 4   ),
     (13,  NULL, 0,  1.796,  0.626, -6.12,   3,    2   ),
     (14,  NULL, 0,  3.462,  0.626, -5.913,  3,    2   ),
-    (15,  NULL, 0,  4.349,  0.626, -4.628,  NULL, NULL),
-    (16,  NULL, 0,  6.094,  0.626, -4.401,  6,    3   ),    
-    (17,  NULL, 0,  6.855,  0.626, -3.045,  6,    3   ),
-    (18,  NULL, 0,  6.125,  0.626, -1.465,  NULL, NULL),
+    (15,  NULL, 0,  4.349,  0.626, -4.628,  NULL, 4   ),
+    (16,  NULL, 0,  6.094,  0.626, -4.401,  NULL, 3   ),    
+    (17,  NULL, 0,  6.855,  0.626, -3.045,  NULL, 3   ),
+    (18,  NULL, 0,  6.125,  0.626, -1.465,  NULL, 4   ),
     (19,  NULL, 0,  7.037,  0.626, 0.089,   4,    2   ),
     (20,  NULL, 0,  6.163,  0.626, 1.559,   4,    2   ),
-    (21,  NULL, 0,  6.906,  0.626, 3.105,   NULL, NULL),
-    (22,  NULL, 0,  5.988,  0.626, 4.41,    NULL, NULL),
-    (23,  NULL, 0,  4.297,  0.626, 4.556,   6,    3   ),
-    (24,  NULL, 0,  3.422,  0.626, 6.026,   6,    3   ),
-    (25,  NULL, 0,  1.709,  0.626, 6.178,   NULL, NULL),
-    (26,  NULL, 0,  0.747,  0.626, 7.389,   6,    3   ),
-    (27,  NULL, 0,  -0.819, 0.626, 7.405,   6,    3   ),
-    (28,  NULL, 0,  -1.82,  0.626, 6.206,   NULL, NULL),
+    (21,  NULL, 0,  6.906,  0.626, 3.105,   NULL, 4   ),
+    (22,  NULL, 0,  5.988,  0.626, 4.41,    NULL, 4   ),
+    (23,  NULL, 0,  4.297,  0.626, 4.556,   NULL, 3   ),
+    (24,  NULL, 0,  3.422,  0.626, 6.026,   NULL, 3   ),
+    (25,  NULL, 0,  1.709,  0.626, 6.178,   NULL, 4   ),
+    (26,  NULL, 0,  0.747,  0.626, 7.389,   NULL, 3   ),
+    (27,  NULL, 0,  -0.819, 0.626, 7.405,   NULL, 3   ),
+    (28,  NULL, 0,  -1.82,  0.626, 6.206,   NULL, 4   ),
     (29,  NULL, 0,  -3.502, 0.626, 6.077,   2,    2   ),
     (30,  NULL, 0,  -4.452, 0.626, 4.642,   2,    2   ),
-    (31,  NULL, 0,  -3.478, 0.626, 3.002,   NULL, NULL),
-    (32,  NULL, 0,  -4.452, 0.626, 1.66,    NULL, NULL),    
-    (33,  NULL, 0,  -3.542, 0.626, 0.031,   NULL, NULL),
-    (34,  NULL, 0,  -4.356, 0.626, -1.489,  NULL, NULL),
-    (35,  NULL, 0,  -3.472, 0.626, -3.007,  NULL, NULL),
-    (36,  NULL, 0,  -1.785, 0.626, -3.02,   NULL, NULL),
-    (37,  NULL, 0,  -0.839, 0.626, -4.578,  NULL, NULL),    
-    (38,  NULL, 0,  0.886,  0.626, -4.54,   NULL, NULL),
-    (39,  NULL, 0,  1.79,   0.626, -3.01,   NULL, NULL),
-    (40,  NULL, 0,  3.506,  0.626, -3.04,   NULL, NULL),
-    (41,  NULL, 0,  4.436,  0.626, -1.515,  NULL, NULL),
-    (42,  NULL, 0,  3.626,  0.626, 0.098,   NULL, NULL),
-    (43,  NULL, 0,  4.348,  0.626, 1.5,     NULL, NULL),    
-    (44,  NULL, 0,  3.509,  0.626, 3.004,   NULL, NULL),
-    (45,  NULL, 0,  1.792,  0.626, 3.018,   NULL, NULL),
-    (46,  NULL, 0,  0.852,  0.626, 4.599,   NULL, NULL),
-    (47,  NULL, 0,  -0.864, 0.626, 4.547,   NULL, NULL),
-    (48,  NULL, 0,  -1.805, 0.626, 3.146,   NULL, NULL),
-    (49,  NULL, 0,  -0.812, 0.626, 1.507,   NULL, NULL),    
-    (50,  NULL, 0,  -1.785, 0.626, 0.03,    NULL, NULL),
-    (51,  NULL, 0,  -0.836, 0.626, -1.585,  NULL, NULL),
-    (52,  NULL, 0,  0.903,  0.626, -1.471,  NULL, NULL),
-    (53,  NULL, 0,  1.763,  0.626, -0.027,  NULL, NULL),
-    (54,  NULL, 0,  0.838,  0.626, 1.609,   NULL, NULL);
+    (31,  NULL, 0,  -3.478, 0.626, 3.002,   NULL, 4   ),
+    (32,  NULL, 0,  -4.452, 0.626, 1.66,    NULL, 4   ),    
+    (33,  NULL, 0,  -3.542, 0.626, 0.031,   NULL, 4   ),
+    (34,  NULL, 0,  -4.356, 0.626, -1.489,  NULL, 4   ),
+    (35,  NULL, 0,  -3.472, 0.626, -3.007,  NULL, 4   ),
+    (36,  NULL, 0,  -1.785, 0.626, -3.02,   NULL, 4   ),
+    (37,  NULL, 0,  -0.839, 0.626, -4.578,  NULL, 4   ),    
+    (38,  NULL, 0,  0.886,  0.626, -4.54,   NULL, 4   ),
+    (39,  NULL, 0,  1.79,   0.626, -3.01,   NULL, 4   ),
+    (40,  NULL, 0,  3.506,  0.626, -3.04,   NULL, 4   ),
+    (41,  NULL, 0,  4.436,  0.626, -1.515,  NULL, 4   ),
+    (42,  NULL, 0,  3.626,  0.626, 0.098,   NULL, 4   ),
+    (43,  NULL, 0,  4.348,  0.626, 1.5,     NULL, 4   ),    
+    (44,  NULL, 0,  3.509,  0.626, 3.004,   NULL, 4   ),
+    (45,  NULL, 0,  1.792,  0.626, 3.018,   NULL, 4   ),
+    (46,  NULL, 0,  0.852,  0.626, 4.599,   NULL, 4   ),
+    (47,  NULL, 0,  -0.864, 0.626, 4.547,   NULL, 4   ),
+    (48,  NULL, 0,  -1.805, 0.626, 3.146,   NULL, 4   ),
+    (49,  NULL, 0,  -0.812, 0.626, 1.507,   NULL, 4   ),    
+    (50,  NULL, 0,  -1.785, 0.626, 0.03,    NULL, 4   ),
+    (51,  NULL, 0,  -0.836, 0.626, -1.585,  NULL, 4   ),
+    (52,  NULL, 0,  0.903,  0.626, -1.471,  NULL, 4   ),
+    (53,  NULL, 0,  1.763,  0.626, -0.027,  NULL, 4   ),
+    (54,  NULL, 0,  0.838,  0.626, 1.609,   NULL, 4   );
 
 -- =========================
 -- Insertar datos HEXAGON_CONECTIONS
