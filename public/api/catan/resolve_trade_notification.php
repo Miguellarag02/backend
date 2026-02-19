@@ -58,6 +58,25 @@ try {
 
   // Si aceptas, debe existir respuesta del TO
   if ($accept_trade) {
+    // Check if at least one of the involve traders are in their turn
+    $check = $pdo->prepare("
+      SELECT MAX(player.current_order = gm.turn) AS areInvolved
+        FROM player
+        JOIN game_match gm ON gm.id = 1
+        WHERE player.id = :from_id 
+        || player.id = :to_id
+      ");
+    $check->execute([
+      "from_id" => (int)$tn["from_id_player"],
+      "to_id" => (int)$tn["to_id_player"],
+    ]);
+    if ((int)$check->fetchColumn() !== 1) {
+      $pdo->rollBack();
+      http_response_code(400);
+      echo json_encode(["ok" => false, "message" => "The players are not in their turns"]);
+      exit;
+    }
+
     if ($tn["to_resource_ids"] === null) {
       $pdo->rollBack();
       http_response_code(400);

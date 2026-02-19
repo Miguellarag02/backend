@@ -51,7 +51,7 @@ try {
             AND t_gen.resource_trade_id IS NULL
             WHERE prc.id_player = 1
               AND rc.id <> 6
-            GROUP BY rc.id, rc.card_name, prc.qty
+            GROUP BY rc.id, prc.qty
           ) x
         ), JSON_ARRAY()) AS resource_cards,
         COALESCE((
@@ -125,9 +125,9 @@ try {
   $tns = $getTn->fetchAll(PDO::FETCH_ASSOC);
 
   // Get current turn and order
-  $getGm = $pdo->prepare("SELECT * FROM game_match gm WHERE gm.id = 1");
+  $getGm = $pdo->prepare("SELECT * FROM game_match LIMIT 1");
   $getGm->execute();
-  $gm = $getTn->fetchAll(PDO::FETCH_ASSOC);
+  $gm = $getGm->fetch(PDO::FETCH_ASSOC);
  
   echo json_encode([
     "ok" => true,
