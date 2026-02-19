@@ -26,17 +26,32 @@ try {
     "SELECT
         p.id AS player_id,
         p.color AS color,
+        p.current_order AS current_order,
         COALESCE((
           SELECT JSON_ARRAYAGG(
-            JSON_OBJECT('id', x.id, 'name', x.name, 'qty', x.qty)
+            JSON_OBJECT('id', x.id, 'name', x.name, 'qty', x.qty, 'trade_qty', x.trade_qty)
           )
           FROM (
-            SELECT rc.id AS id, rc.card_name AS name, prc.qty AS qty
+            SELECT
+              rc.id AS id,
+              rc.card_name AS name,
+              prc.qty AS qty,
+              LEAST(
+                COALESCE(MIN(t_spec.resource_trade_qty), 4),
+                COALESCE(MIN(t_gen.resource_trade_qty), 4)
+              ) AS trade_qty
             FROM player_resources_card prc
-            JOIN resources_card rc ON rc.id = prc.id_card
-            WHERE prc.id_player = p.id
+            JOIN resources_card rc
+              ON rc.id = prc.id_card
+            LEFT JOIN town t_spec
+              ON t_spec.player_id = prc.id_player
+            AND t_spec.resource_trade_id = rc.id
+            LEFT JOIN town t_gen
+              ON t_gen.player_id = prc.id_player
+            AND t_gen.resource_trade_id IS NULL
+            WHERE prc.id_player = 1
               AND rc.id <> 6
-            GROUP BY rc.id
+            GROUP BY rc.id, rc.card_name, prc.qty
           ) x
         ), JSON_ARRAY()) AS resource_cards,
         COALESCE((
@@ -104,16 +119,22 @@ try {
   ]);
   $available = $stmt->fetch(PDO::FETCH_ASSOC);
 
-  // Get current tarde notification
+  // Get current trade notification
   $getTn = $pdo->prepare("SELECT * FROM trade_notifications tn ORDER BY tn.id DESC");
   $getTn->execute();
   $tns = $getTn->fetchAll(PDO::FETCH_ASSOC);
+
+  // Get current turn and order
+  $getGm = $pdo->prepare("SELECT * FROM game_match gm WHERE gm.id = 1");
+  $getGm->execute();
+  $gm = $getTn->fetchAll(PDO::FETCH_ASSOC);
  
   echo json_encode([
     "ok" => true,
     "player" => [
       "id" => (int)$player["player_id"],
       "color" => $player["color"],
+      "order" => $player["current_order"],
       "resource_cards" => $player["resource_cards"],
       "random_cards" => $player["random_cards"],
     ],
@@ -123,7 +144,8 @@ try {
       3 => (int)$available["available_city"],
       4 => (int)$available["available_random_card"],
     ],
-    "trade_notification" => $tns
+    "trade_notification" => $tns,
+    "game_match" => $gm
   ], JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {

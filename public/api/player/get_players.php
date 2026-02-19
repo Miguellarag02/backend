@@ -16,6 +16,7 @@ try {
     "SELECT users.username,
               player.id,
               player.color,
+              player.current_order,
               users.user_image,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
