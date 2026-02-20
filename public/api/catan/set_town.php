@@ -28,47 +28,64 @@ try {
     $pdo = db();
     $pdo->beginTransaction();
 
-    // Check enough resource
-    $checkStmt = $pdo->prepare("
-        SELECT MIN(brc.qty <= pyc.qty) AS available
-        FROM building_resources_card brc
-        JOIN users u ON u.username = :username
-        JOIN player p ON p.id_user = u.id
-        JOIN player_resources_card pyc
-            ON pyc.id_player = p.id AND brc.id_card = pyc.id_card
-        WHERE brc.id_building = (1 + :level_town)
+    // Check if the player is in the first round, in that case the build is free
+    $check = $pdo->prepare("
+        SELECT ((gm.turn = player.current_order) && (gm.round = 1 || gm.round = 2)) AS build_free
+        FROM game_match gm
+        JOIN users ON users.username = :username
+        JOIN player ON player.id_user = users.id
+        WHERE gm.id = 1
         FOR UPDATE
     ");
-    $checkStmt->execute(["username" => $username, "level_town" => $level]);
-    $available = (int) $checkStmt->fetchColumn();
+    $check->execute([
+        "username" => $username
+    ]);
+    $checkRound = (int) $check->fetchColumn();
 
-    if ($available === 0) {
-        $pdo->rollBack();
-        http_response_code(400);
-        echo json_encode(["ok" => false, "message" => "Not enough materials"]);
-        exit;
+    if ($checkRound != 1) {
+
+        // Check enough resource
+        $checkStmt = $pdo->prepare("
+            SELECT MIN(brc.qty <= pyc.qty) AS available
+            FROM building_resources_card brc
+            JOIN users u ON u.username = :username
+            JOIN player p ON p.id_user = u.id
+            JOIN player_resources_card pyc
+                ON pyc.id_player = p.id AND brc.id_card = pyc.id_card
+            WHERE brc.id_building = (1 + :level_town)
+            FOR UPDATE
+        ");
+        $checkStmt->execute(["username" => $username, "level_town" => $level]);
+        $available = (int) $checkStmt->fetchColumn();
+
+        if ($available === 0) {
+            $pdo->rollBack();
+            http_response_code(400);
+            echo json_encode(["ok" => false, "message" => "Not enough materials"]);
+            exit;
+        }
+
+        // Delete resource from user
+        $updateStmt = $pdo->prepare("
+            UPDATE player_resources_card pyc
+            JOIN player p ON pyc.id_player = p.id
+            JOIN users u ON p.id_user = u.id
+            JOIN building_resources_card brc ON brc.id_card = pyc.id_card
+            SET pyc.qty = pyc.qty - brc.qty
+            WHERE u.username = :username
+                AND brc.id_building = (1 + :level_town)
+        ");
+        $updateStmt->execute(["username" => $username, "level_town" => $level]);
+
+        // Add resource to banck
+        $updateStmt = $pdo->prepare("
+            UPDATE resources_card rc
+            JOIN building_resources_card brc ON brc.id_card = rc.id
+            SET rc.current_count = rc.current_count - brc.qty
+            WHERE brc.id_building = (1 + :level_town)
+        ");
+        $updateStmt->execute(["level_town" => $level]);
     }
-
-    // Delete resource from user
-    $updateStmt = $pdo->prepare("
-        UPDATE player_resources_card pyc
-        JOIN player p ON pyc.id_player = p.id
-        JOIN users u ON p.id_user = u.id
-        JOIN building_resources_card brc ON brc.id_card = pyc.id_card
-        SET pyc.qty = pyc.qty - brc.qty
-        WHERE u.username = :username
-            AND brc.id_building = (1 + :level_town)
-    ");
-    $updateStmt->execute(["username" => $username, "level_town" => $level]);
-
-    // Add resource to banck
-    $updateStmt = $pdo->prepare("
-        UPDATE resources_card rc
-        JOIN building_resources_card brc ON brc.id_card = rc.id
-        SET rc.current_count = rc.current_count - brc.qty
-        WHERE brc.id_building = (1 + :level_town)
-    ");
-    $updateStmt->execute(["level_town" => $level]);
 
     // Add town
     $updateStmt = $pdo->prepare(

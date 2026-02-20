@@ -184,7 +184,7 @@ try {
         }
 
         // 4) Reasignar dice_number: desierto => NULL, resto => siguiente de diceSeq
-        $updateSeq = $pdo->prepare("UPDATE hexagon SET dice_number = :dn, letter = :lett WHERE id = :hid");
+        $updateSeq = $pdo->prepare("UPDATE hexagon SET dice_number = :dn, letter = :lett, is_thief = :thief WHERE id = :hid");
 
         $k = 0;
         $desertHexId = null;
@@ -198,13 +198,15 @@ try {
                 $updateSeq->execute([
                     ":dn"  => null,
                     ":hid" => $hid,
-                    ":lett" => 's'
+                    ":lett" => 's',
+                    ":thief" => 1
                 ]);
             } else {
                 $updateSeq->execute([
                     ":dn"  => $diceSeq[$k],
                     ":hid" => $hid,
                     ":lett" => $letterSeq[$k],
+                    ":thief" => 0
                 ]);
                 $k++;
             }

@@ -25,7 +25,10 @@ CREATE TABLE IF NOT EXISTS game_match (
   turn INT NOT NULL DEFAULT 0,
   round INT NOT NULL DEFAULT 0,
   min_player INT NOT NULL DEFAULT 3,
-  max_player INT NOT NULL DEFAULT 4
+  max_player INT NOT NULL DEFAULT 4,
+  last_dice INT NOT NULL DEFAULT 0,
+  largest_path INT NOT NULL DEFAULT 0,
+  biggest_army INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -743,5 +746,15 @@ VALUES
     (141, 53, 42, null, 2.648,  0.457, -0.025,  0,      -1.56,  -3.142),
     (142, 54, 53, null, 1.301,  0.457, 0.737,   -3.142, 0.509,  0     ),
     (143, 54, 49, null, 0.019,  0.457, 1.537,   0,      -1.56,  -3.142),
-    (144, 54, 45, null, 1.3,    0.457, 2.239,   3.142,  -0.53,  0     );
+    (144, 54, 45, null, 1.3,    0.457, 2.239,   3.142,  -0.53,  0     )
+    ON DUPLICATE KEY UPDATE
+      from_town_id = VALUES(from_town_id),
+      to_town_id = VALUES(to_town_id),
+      player_id = VALUES(player_id),
+      pos_x = VALUES(pos_x),
+      pos_y = VALUES(pos_y),
+      pos_z = VALUES(pos_z),
+      rot_x = VALUES(rot_x),
+      rot_y = VALUES(rot_y),
+      rot_z = VALUES(rot_z);
 -- =========================

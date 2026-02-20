@@ -26,7 +26,10 @@ try {
     "SELECT
         p.id AS player_id,
         p.color AS color,
+        p.largest_path AS largest_path,
+        p.biggest_army AS biggest_army,
         p.current_order AS current_order,
+        p.points AS points,
         COALESCE((
           SELECT JSON_ARRAYAGG(
             JSON_OBJECT('id', x.id, 'name', x.name, 'qty', x.qty, 'trade_qty', x.trade_qty)
@@ -141,6 +144,46 @@ try {
   ");
   $getNumPlyer->execute();
   $numPlayer = $getNumPlyer->fetch(PDO::FETCH_ASSOC);
+
+  // Get n_cities
+  $getCities = $pdo->prepare("
+    SELECT COUNT(*) AS cities
+      FROM town
+      WHERE player_id = :pid
+        AND level = 2
+  ");
+  $getCities->execute(["pid" => (int)$player["player_id"],]);
+  $cities = (int)$getCities->fetchColumn();
+
+  // Get n_towns
+  $getTowns = $pdo->prepare("
+    SELECT COUNT(*) AS towns
+      FROM town
+      WHERE player_id = :pid
+        AND level = 1
+  ");
+  $getTowns->execute(["pid" => (int)$player["player_id"],]);
+  $towns = (int)$getTowns->fetchColumn();
+
+  // Get n_paths
+  $getPaths = $pdo->prepare("
+    SELECT COUNT(*) AS paths
+      FROM town_conections
+      WHERE player_id = :pid
+  ");
+  $getPaths->execute(["pid" => (int)$player["player_id"],]);
+  $paths = (int)$getPaths->fetchColumn();
+
+  // Update User points
+  $updatePoints = $pdo->prepare("
+      UPDATE player
+      SET points = :new_points
+      WHERE id = :player_id
+  ");
+  $updatePoints->execute([
+    "player_id" => (int)$player["player_id"],
+    "new_points" => ($towns + $cities*2 + (int)$player["biggest_army"]*2 + (int)$player["largest_path"]*2) 
+  ]);
  
   echo json_encode([
     "ok" => true,
@@ -157,9 +200,16 @@ try {
       3 => (int)$available["available_city"],
       4 => (int)$available["available_random_card"],
     ],
+    "towns" => $towns,
+    "paths" => $paths,
     "trade_notification" => $tns,
     "game_match" => $gm,
-    "n_players" => $numPlayer
+    "n_players" => $numPlayer,
+    "bonus" => [
+      "biggest_army" => (int)$player["biggest_army"],
+      "largest_path" => (int)$player["largest_path"],
+      "points" => (int)$player["points"]
+    ]
   ], JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {

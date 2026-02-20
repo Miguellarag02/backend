@@ -16,6 +16,9 @@ try {
     "SELECT users.username,
               player.id,
               player.color,
+              player.biggest_army,
+              player.largest_path,
+              player.points,
               player.current_order,
               users.user_image,
               JSON_ARRAYAGG(
