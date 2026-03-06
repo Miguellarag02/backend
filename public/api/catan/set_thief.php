@@ -62,8 +62,20 @@ try {
     ");
     $updateStmt->execute(["hex_id" => $hex_id]);
 
+    // Get affected players
+    $stmt = $pdo->prepare("
+        SELECT p.id
+        FROM player p
+        JOIN town ON town.player_id = p.id
+        JOIN hexagon hx ON hx.id = :hex_id
+        JOIN hexagon_conections hxcon ON hxcon.from_hexagon_id = hx.id
+        WHERE hxcon.to_town_id = town.id
+    ");
+    $stmt->execute(["hex_id" => $hex_id]);
+    $id_players = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     $pdo->commit();
-    echo json_encode(["ok" => true]);
+    echo json_encode(["ok" => true, "id_players" => $id_players]);
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();

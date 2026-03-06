@@ -69,7 +69,7 @@ try {
                     SUM(t.level)  AS qty
                 FROM town t
                 JOIN hexagon_conections hxc ON hxc.to_town_id = t.id
-                JOIN hexagon h              ON h.id = hxc.from_hexagon_id
+                JOIN hexagon h              ON h.id = hxc.from_hexagon_id AND h.is_thief = 0
                 WHERE h.dice_number = :dice_result
                     AND t.player_id IS NOT NULL
                 GROUP BY t.player_id, h.resource_id
@@ -89,7 +89,7 @@ try {
                     SUM(t.level)  AS qty
                 FROM town t
                 JOIN hexagon_conections hxc ON hxc.to_town_id = t.id
-                JOIN hexagon h              ON h.id = hxc.from_hexagon_id
+                JOIN hexagon h              ON h.id = hxc.from_hexagon_id AND h.is_thief = 0
                 WHERE h.dice_number = :dice_result
                     AND t.player_id IS NOT NULL
                 GROUP BY t.player_id, h.resource_id

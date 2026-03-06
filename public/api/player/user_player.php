@@ -29,6 +29,7 @@ try {
         p.largest_path AS largest_path,
         p.biggest_army AS biggest_army,
         p.current_order AS current_order,
+        p.actives_knights AS actives_knights,
         p.points AS points,
         COALESCE((
           SELECT JSON_ARRAYAGG(
@@ -206,9 +207,11 @@ try {
     "game_match" => $gm,
     "n_players" => $numPlayer,
     "bonus" => [
+      "actives_knights" => (int)$player["actives_knights"],
       "biggest_army" => (int)$player["biggest_army"],
       "largest_path" => (int)$player["largest_path"],
-      "points" => (int)$player["points"]
+      "points" => (int)$player["points"],
+      "extra_points" => $player["random_cards"][0]["qty"]
     ]
   ], JSON_UNESCAPED_UNICODE);
 

@@ -71,7 +71,8 @@ if (!is_array($data) || !isset($data["username"], $data["buildId"])) {
 }
 
 $username = trim((string)$data["username"]);
-$build_id = $data["buildId"];
+$build_id = (int)$data["buildId"];
+$buildRoadsCard = (int)$data["extraBuild"];
 
 if ($username === "" || $build_id < 1 ) {
   http_response_code(400);
@@ -85,7 +86,7 @@ try {
     $pdo = db();
     $pdo->beginTransaction();
 
-        // Check if the player is in the first round, in that case the build is free
+    // Check if the player is in the first round, in that case the build is free
     $check = $pdo->prepare("
         SELECT ((gm.turn = player.current_order) && (gm.round = 1 || gm.round = 2)) AS build_free
         FROM game_match gm
@@ -99,7 +100,27 @@ try {
     ]);
     $checkRound = (int) $check->fetchColumn();
 
-    if ($checkRound != 1) {
+    if ($buildRoadsCard > 1){
+        // Delete random card
+        $upd = $pdo->prepare("
+            UPDATE player_random_card prc
+            JOIN users ON users.username = :username
+            JOIN player ON player.id_user = users.id
+            SET prc.qty = prc.qty - 1
+            WHERE prc.id_player = player.id
+            AND prc.id_card = 4
+            AND prc.qty > 0
+        ");
+        $upd->execute(["username" => $username]);
+
+        if ($upd->rowCount() !== 1) {
+            $pdo->rollBack();
+            http_response_code(400);
+            echo json_encode(["ok" => false, "message" => "Monopoly card not available"]);
+            exit;
+        }
+    }
+    else if ($checkRound != 1 && $buildRoadsCard == 0) {
 
         // Check enough materials
         $checkStmt = $pdo->prepare("

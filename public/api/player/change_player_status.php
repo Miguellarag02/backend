@@ -110,21 +110,6 @@ try {
             throw new RuntimeException("No hay recursos en la tabla resources.");
         }
 
-        $pool = [];
-        $expectedDeserts = 0;
-
-        foreach ($resources as $r) {
-            $rid = (int)$r["id"];
-            $count = (int)$r["max_hex_count"];
-            if ($count < 0) {
-                throw new RuntimeException("max_hex_count inválido para resource id={$rid}");
-            }
-            if ($rid === 6) $expectedDeserts += $count;
-            for ($i = 0; $i < $count; $i++) {
-                $pool[] = $rid;
-            }
-        }
-
         // Bloquear hexágonos y leerlos en orden estable
         $hexStmt = $pdo->query("SELECT id, dice_number, letter FROM hexagon ORDER BY id FOR UPDATE");
         $hexagons = $hexStmt->fetchAll(PDO::FETCH_ASSOC);
