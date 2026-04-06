@@ -100,7 +100,7 @@ try {
     // Balanced resources
     $upd = $pdo->prepare("
         UPDATE resources_card
-        SET current_count = current_count + :qty
+        SET current_count = current_count - :qty
         WHERE id = :resource_id
     ");
     $upd->execute([
@@ -109,7 +109,7 @@ try {
     ]);
     $upd = $pdo->prepare("
         UPDATE resources_card
-        SET current_count = current_count - 1
+        SET current_count = current_count + 1
         WHERE id = :resource_id
     ");
     $upd->execute([

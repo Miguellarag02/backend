@@ -110,6 +110,28 @@ try {
             throw new RuntimeException("No hay recursos en la tabla resources.");
         }
 
+        $pool = [];
+        $expectedDeserts = 0;
+        foreach ($resources as $resource) {
+            $rid = isset($resource["id"]) ? (int)$resource["id"] : 0;
+            $maxHexCount = isset($resource["max_hex_count"]) ? (int)$resource["max_hex_count"] : 0;
+
+            if ($rid <= 0) {
+                throw new RuntimeException("resource.id inválido al construir el mapa.");
+            }
+            if ($maxHexCount < 0) {
+                throw new RuntimeException("resource.max_hex_count no puede ser negativo (resource id={$rid}).");
+            }
+
+            if ($rid === 6) {
+                $expectedDeserts = $maxHexCount;
+            }
+
+            for ($j = 0; $j < $maxHexCount; $j++) {
+                $pool[] = $rid;
+            }
+        }
+
         // Bloquear hexágonos y leerlos en orden estable
         $hexStmt = $pdo->query("SELECT id, dice_number, letter FROM hexagon ORDER BY id FOR UPDATE");
         $hexagons = $hexStmt->fetchAll(PDO::FETCH_ASSOC);

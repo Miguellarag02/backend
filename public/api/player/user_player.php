@@ -53,7 +53,7 @@ try {
             LEFT JOIN town t_gen
               ON t_gen.player_id = prc.id_player
             AND t_gen.resource_trade_id IS NULL
-            WHERE prc.id_player = 1
+            WHERE prc.id_player = p.id
               AND rc.id <> 6
             GROUP BY rc.id, prc.qty
           ) x
@@ -185,6 +185,42 @@ try {
     "player_id" => (int)$player["player_id"],
     "new_points" => ($towns + $cities*2 + (int)$player["biggest_army"]*2 + (int)$player["largest_path"]*2) 
   ]);
+
+  // If points + extraPoints >= 10 Declared user as winner
+  $extraPoints = $player["random_cards"][0]["qty"];
+  if((int)$player["points"] + $extraPoints >= 10){
+    $updatePoints = $pdo->prepare("
+      UPDATE player
+      SET points = :new_points
+      WHERE id = :player_id
+    ");
+    $updatePoints->execute([
+      "player_id" => (int)$player["player_id"],
+      "new_points" => 10 
+    ]);
+    $extraPoints = 0; //Use victory cards
+  }
+
+  // Check if other player has 10 points
+  $checkPoints = $pdo->prepare("
+    SELECT 
+      player.id AS player_id, 
+      users.username AS username,
+      SUM(town.level = 1) AS town_points,
+      SUM(town.level = 2)*2 AS city_points,
+      player.largest_path AS largest_path,
+      player.biggest_army AS biggest_army,
+      prc.qty AS card_points
+      FROM player
+      JOIN users ON users.id = player.id_user
+      JOIN town ON town.player_id = player.id
+      JOIN player_random_card prc ON prc.id_player = player.id AND prc.id_card = 1
+      WHERE player.points >= 10
+      GROUP BY player.id
+      LIMIT 1;
+  ");
+  $checkPoints->execute([]);
+  $playerPoints = $checkPoints->fetch(PDO::FETCH_ASSOC) ?: null;
  
   echo json_encode([
     "ok" => true,
@@ -211,7 +247,16 @@ try {
       "biggest_army" => (int)$player["biggest_army"],
       "largest_path" => (int)$player["largest_path"],
       "points" => (int)$player["points"],
-      "extra_points" => $player["random_cards"][0]["qty"]
+      "extra_points" => $extraPoints
+    ],
+    "victory" => [
+      "id" => (int)($playerPoints["player_id"] ?? 0),
+      "name" => $playerPoints["username"] ?? "",
+      "townPoints" => (int)($playerPoints["town_points"] ?? 0),
+      "cityPoints" => (int)($playerPoints["city_points"] ?? 0),
+      "cardPoints" => (int)($playerPoints["card_points"] ?? 0),
+      "largestPath" => (int)($playerPoints["largest_path"] ?? 0),
+      "biggestArmy" => (int)($playerPoints["biggest_army"] ?? 0),
     ]
   ], JSON_UNESCAPED_UNICODE);
 
