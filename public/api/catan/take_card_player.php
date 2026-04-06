@@ -47,21 +47,7 @@ try {
     exit;
   }
 
-  if (!$activatedKnight) { // 1.1) Check dices with 7 value
-    $check = $pdo->query("
-      SELECT (last_dice = 7) AS diceIsSeven
-      FROM game_match
-      WHERE id = 1
-      FOR UPDATE
-    ");
-
-    if ((int)$check->fetchColumn() !== 1) {
-      $pdo->rollBack();
-      http_response_code(400);
-      echo json_encode(["ok" => false, "message" => "Cheater? There weren't any 7 value in dices"]);
-      exit;
-    }
-  } else { // 1.2) Check Knight and mark as activated
+  if ($activatedKnight)  { // Check Knight and mark as activated
     $upd = $pdo->prepare("
       UPDATE player p
       JOIN player_random_card prc

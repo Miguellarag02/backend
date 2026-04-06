@@ -758,3 +758,10 @@ VALUES
       rot_y = VALUES(rot_y),
       rot_z = VALUES(rot_z);
 -- =========================
+
+-- =========================
+-- Resets players
+-- =========================
+UPDATE player py
+SET py.actives_knights = 0, py.biggest_army = 0, py.current_order = 0, py.is_playing = 0, py.largest_path = 0, py.points = 0;
+-- =========================

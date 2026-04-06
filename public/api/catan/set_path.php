@@ -209,6 +209,8 @@ try {
         $largest = (int) $checkStmt->fetchColumn();
 
         if ($largest == 1) {
+
+        // Delete the largest path bonus
             $updateStmt = $pdo->prepare(
                 "UPDATE player p
                 JOIN users u ON u.username = :username
@@ -218,6 +220,8 @@ try {
             $updateStmt->execute([
                 "username" => $username
             ]);
+
+            // Add largest path bonus to the current player
             $updateStmt = $pdo->prepare(
                 "UPDATE player p
                 JOIN users u ON u.username = :username
@@ -227,6 +231,13 @@ try {
             $updateStmt->execute([
                 "username" => $username
             ]);
+
+            // Update largest path
+            $updateStmt = $pdo->prepare(
+                "UPDATE game_match
+                SET largest_path = :user_path"
+            );
+            $updateStmt->execute(["user_path" => $largest_road]);
         }
     }
 

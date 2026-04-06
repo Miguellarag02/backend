@@ -92,7 +92,7 @@ try {
                 JOIN hexagon h              ON h.id = hxc.from_hexagon_id AND h.is_thief = 0
                 WHERE h.dice_number = :dice_result
                     AND t.player_id IS NOT NULL
-                GROUP BY t.player_id, h.resource_id
+                GROUP BY h.resource_id
             ) prod
             ON prod.id_card = rc.id
             SET rc.current_count = rc.current_count + prod.qty;
