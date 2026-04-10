@@ -65,7 +65,7 @@ try {
         }
     }
 
-    // Comprobamos si estamos respondiendo una notificación existente
+    // Check whether we are answering an existing notification
     $getTn = $pdo->prepare("
         SELECT tn.id
             FROM trade_notifications AS tn
@@ -83,7 +83,7 @@ try {
 
 
     if (!$tn) {
-        // No existe ningún trade abierto, proponemos uno
+        // No open trade exists, propose one
         $stmt = $pdo->prepare("
             INSERT INTO trade_notifications (from_id_player, to_id_player, from_resource_ids)
                 SELECT 
@@ -111,7 +111,7 @@ try {
         $newId = $pdo->lastInsertId();
     }
     else {
-        // Ya existe, actualizamos la oferta
+        // It already exists, update the offer
         $stmt = $pdo->prepare("
             UPDATE trade_notifications tn
             JOIN users u ON u.username = :username
@@ -137,6 +137,6 @@ try {
     echo json_encode([
     "ok" => false,
     "message" => "Database error",
-    "debug" => $e->getMessage() // activa solo en dev
+    "debug" => $e->getMessage() // enable only in dev
     ]);
 }

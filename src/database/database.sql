@@ -1,8 +1,8 @@
--- Recomendado para evitar problemas con FKs al importar
+-- Recommended to avoid FK issues when importing
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- =========================
--- Limpieza para re-ejecucion
+-- Cleanup for re-run
 -- =========================
 DROP TABLE IF EXISTS building_resources_card;
 DROP TABLE IF EXISTS player_random_card;
@@ -151,7 +151,7 @@ CREATE INDEX idx_towncon_from ON town_conections(from_town_id);
 CREATE INDEX idx_towncon_to   ON town_conections(to_town_id);
 
 -- =========================
--- RESOURCES_CARD (tipos de recurso)
+-- RESOURCES_CARD (resource types)
 -- =========================
 CREATE TABLE IF NOT EXISTS resources_card (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS resources_card (
 ) ENGINE=InnoDB;
 
 -- =========================
--- RANDOM_CARD (tipos de carta aleatoria/desarrollo)
+-- RANDOM_CARD (random/development card types)
 -- =========================
 CREATE TABLE IF NOT EXISTS random_card (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS random_card (
 ) ENGINE=InnoDB;
 
 -- =========================
--- PLAYER_RESOURCES_CARD (cantidad por jugador y tipo de recurso)
+-- PLAYER_RESOURCES_CARD (quantity per player and resource type)
 -- =========================
 CREATE TABLE IF NOT EXISTS player_resources_card (
   id_player INT NOT NULL,
@@ -207,7 +207,7 @@ CREATE INDEX idx_prc_player ON player_resources_card(id_player);
 CREATE INDEX idx_prc_card   ON player_resources_card(id_card);
 
 -- =========================
--- PLAYER_RANDOM_CARD (cantidad por jugador y tipo de carta random)
+-- PLAYER_RANDOM_CARD (quantity per player and random card type)
 -- =========================
 CREATE TABLE IF NOT EXISTS player_random_card (
   id_player INT NOT NULL,
@@ -242,7 +242,7 @@ CREATE TABLE IF NOT EXISTS building (
 ) ENGINE=InnoDB;
 
 -- =========================
--- BUILDING_RESOURCES_CARD (coste en recursos por edificio)
+-- BUILDING_RESOURCES_CARD (resource cost per building)
 -- =========================
 CREATE TABLE IF NOT EXISTS building_resources_card (
   id_building INT NOT NULL,

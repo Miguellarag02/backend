@@ -26,8 +26,8 @@ try {
     $pdo = db();
     $pdo->beginTransaction();
 
-    // 1) Leemos todas las cartas con su "restante"
-    // FOR UPDATE bloquea filas para que dos robos simultáneos no rompan el conteo (InnoDB).
+    // 1) Read all cards with their "remaining" value
+    // FOR UPDATE locks rows so two simultaneous draws do not break the count (InnoDB).
     $stmt = $pdo->prepare("
         SELECT id, card_name, current_count, max_count,
                (max_count - current_count) AS remaining
@@ -43,7 +43,7 @@ try {
         throw new RuntimeException("No quedan cartas en el mazo.");
     }
 
-    // 2) Total restante
+    // 2) Remaining total
     $totalRemaining = 0;
     foreach ($cards as $c) {
         $totalRemaining += (int)$c["remaining"];
@@ -54,7 +54,7 @@ try {
         throw new RuntimeException("No quedan cartas en el mazo.");
     }
 
-    // 3) Elegimos un "ticket" aleatorio entre 1..totalRemaining
+    // 3) Pick a random "ticket" between 1..totalRemaining
     $ticket = random_int(1, $totalRemaining);
     $picked = null;
     foreach ($cards as $c) {
@@ -70,7 +70,7 @@ try {
         throw new RuntimeException("Error interno eligiendo carta.");
     }
 
-    // 4) Chequeamos recursos suficientes para la carta
+    // 4) Check enough resources for the card
     $checkStmt = $pdo->prepare("
         SELECT MIN(brc.qty <= pyc.qty) AS available
         FROM building_resources_card brc
@@ -91,7 +91,7 @@ try {
         exit;
     }
 
-    // 5) Borramos los recursos del jugador
+    // 5) Remove resources from the player
     $updateStmt = $pdo->prepare("
         UPDATE player_resources_card pyc
         JOIN player p ON pyc.id_player = p.id
@@ -103,7 +103,7 @@ try {
     ");
     $updateStmt->execute(["username" => $username]);
 
-    // 6) Añadimos los recursos a banco (restando los recursos totales en juego)
+    // 6) Add resources to bank (subtracting total resources in play)
     $updateStmt = $pdo->prepare("
         UPDATE resources_card rc
         JOIN building_resources_card brc ON brc.id_card = rc.id
@@ -112,7 +112,7 @@ try {
     ");
     $updateStmt->execute([]);
 
-    // 7) Actualizamos current_count (+1) asegurando que no se pase del max
+    // 7) Update current_count (+1) ensuring it does not exceed max
     $upd = $pdo->prepare("
         UPDATE random_card
         SET current_count = current_count + 1
@@ -121,12 +121,12 @@ try {
     $upd->execute([":id" => $picked["id"]]);
 
     if ($upd->rowCount() !== 1) {
-        // Puede ocurrir en casos de carrera si no se pudo bloquear (o motor no InnoDB).
+        // This can happen in race conditions if locking failed (or engine is not InnoDB).
         $pdo->rollBack();
         throw new RuntimeException("No se pudo robar la carta (posible concurrencia).");
     }
 
-    // 6) Añadimos lña carta al jugador
+    // 8) Add the card to the player
     $sel = $pdo->prepare("
         UPDATE player_random_card prc
         JOIN users u ON u.username = :username

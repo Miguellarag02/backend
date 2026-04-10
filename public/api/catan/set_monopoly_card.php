@@ -52,7 +52,7 @@ try {
         exit;
     }
 
-    // 1) Chequear cantidad de recurso a recolectar
+    // 1) Check amount of resource to collect
     $checkStmt = $pdo->prepare("
         SELECT SUM(prc.qty)
             FROM player_resources_card AS prc
@@ -76,7 +76,7 @@ try {
         exit;
     }
 
-    // 2) Eliminamos la carta (Monopoly = random_card id 3)
+    // 2) Remove the card (Monopoly = random_card id 3)
     $upd = $pdo->prepare("
         UPDATE player_random_card
         SET qty = qty - 1
@@ -93,7 +93,7 @@ try {
         exit;
     }
 
-    // 3) Repartir recursos al jugador principal
+    // 3) Give resources to the main player
     $upd = $pdo->prepare("
         UPDATE player_resources_card
             SET qty = qty + :take_qty
@@ -110,7 +110,7 @@ try {
         throw new RuntimeException("Failed to add resource card to player");
     }
 
-    // 4) Eliminar recursos del resto de jugadores
+    // 4) Remove resources from the rest of players
     $upd = $pdo->prepare("
         UPDATE player_resources_card
             SET qty = 0

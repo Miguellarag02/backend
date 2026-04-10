@@ -71,7 +71,7 @@ try {
         exit;
     }
 
-    // 1) Chequear si quedan recursos
+    // 1) Check if there are resources left
     foreach ($resource_counts as $resource_id => $take_qty) {
         $checkStmt = $pdo->prepare("
         SELECT ((rc.current_count + :take_qty) <= rc.max_count) AS available
@@ -96,7 +96,7 @@ try {
         }
     }
 
-    // 2) Eliminamos la carta (Inventor = random_card id 5)
+    // 2) Remove the card (Inventor = random_card id 5)
     $upd = $pdo->prepare("
         UPDATE player_random_card
         SET qty = qty - 1
@@ -113,7 +113,7 @@ try {
         exit;
     }
 
-    // 3) Repartir recursos al jugador
+    // 3) Give resources to the player
     foreach ($resource_counts as $resource_id => $take_qty) {
         $upd = $pdo->prepare("
         UPDATE player_resources_card
@@ -132,7 +132,7 @@ try {
         }
     }
 
-    // 4) Actualizar conteo del banco (recursos entregados por el banco)
+    // 4) Update bank count (resources provided by the bank)
     foreach ($resource_counts as $resource_id => $take_qty) {
         $upd = $pdo->prepare("
             UPDATE resources_card

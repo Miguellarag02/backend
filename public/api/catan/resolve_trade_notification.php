@@ -56,7 +56,7 @@ try {
   if (!is_array($from)) $from = [];
   if (!is_array($to))   $to   = [];
 
-  // Si aceptas, debe existir respuesta del TO
+  // If accepted, a TO response must exist
   if ($accept_trade) {
     // Check if at least one of the involve traders are in their turn
     $check = $pdo->prepare("

@@ -265,6 +265,6 @@ try {
   echo json_encode([
     "ok" => false,
     "message" => "Database error",
-    //"debug" => $e->getMessage() // activa solo en dev
+    //"debug" => $e->getMessage() // enable only in dev
   ]);
 }

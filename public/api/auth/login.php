@@ -2,7 +2,7 @@
 declare(strict_types=1);
 header("Content-Type: application/json");
 
-// Solo permitir POST
+// Only allow POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
     echo json_encode([
@@ -12,11 +12,11 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
-// Leer JSON del body
+// Read JSON body
 $rawInput = file_get_contents("php://input");
 $data = json_decode($rawInput, true);
 
-// Validar JSON
+// Validate JSON
 if (!$data || !isset($data["username"], $data["password"])) {
     http_response_code(400);
     echo json_encode([
@@ -29,7 +29,7 @@ if (!$data || !isset($data["username"], $data["password"])) {
 $username = trim($data["username"]);
 $password = $data["password"];
 
-// Validación básica
+// Basic validation
 if ($username === "" || $password === "") {
     http_response_code(400);
     echo json_encode([
@@ -40,7 +40,7 @@ if ($username === "" || $password === "") {
 }
 
 /* ===============================
-   CONEXIÓN A BASE DE DATOS
+   DATABASE CONNECTION
    =============================== */
 
 $config = require dirname(__DIR__, 3) . "/src/config/config.php";
@@ -79,7 +79,7 @@ try {
 }
 
 /* ===============================
-   AUTENTICACIÓN
+   AUTHENTICATION
    =============================== */
 
 $stmt = $pdo->prepare("
@@ -101,7 +101,7 @@ if (!$userRow || !password_verify($password, $userRow["password_hash"])) {
 }
 
 /* ===============================
-   LOGIN OK → SESIÓN
+   LOGIN OK -> SESSION
    =============================== */
 
 session_start();

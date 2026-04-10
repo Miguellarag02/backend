@@ -58,7 +58,7 @@ try {
         "username" => $username
     ]);
 
-    // Verificamos ahora si la partida puede dar comienzo
+    // Check now whether the match can start
     // Get n_players
     $getStartGame = $pdo->prepare("
         SELECT COUNT(player.id) = game_match.max_player AS startGame
@@ -71,7 +71,7 @@ try {
     $startGame = $getStartGame->fetch(PDO::FETCH_ASSOC);
 
     if ($startGame && (int)$startGame["startGame"] === 1) {
-        // 1. Obtener jugadores activos
+        // 1. Get active players
         $stmt = $pdo->query("
             SELECT id
             FROM player
@@ -83,10 +83,10 @@ try {
             throw new Exception("No players currently playing");
         }
 
-        // 2. Mezclar aleatoriamente
+        // 2. Shuffle randomly
         shuffle($players);
 
-        // 3. Asignar orden
+        // 3. Assign order
         $update = $pdo->prepare("
             UPDATE player
             SET current_order = :order
@@ -102,7 +102,7 @@ try {
             $order++;
         }
 
-        // 4) Leer recursos y construir la bolsa respetando max_hex_count
+        // 4) Read resources and build the pool respecting max_hex_count
         $resStmt = $pdo->query("SELECT id, max_hex_count FROM resources_card ORDER BY id");
         $resources = $resStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -132,7 +132,7 @@ try {
             }
         }
 
-        // Bloquear hexágonos y leerlos en orden estable
+        // Lock hexagons and read them in stable order
         $hexStmt = $pdo->query("SELECT id, dice_number, letter FROM hexagon ORDER BY id FOR UPDATE");
         $hexagons = $hexStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -148,7 +148,7 @@ try {
         }
 
         if ($expectedDeserts !== 1) {
-            // Tu caso: Desierto=1. Si cambias la tabla, te avisa.
+            // Your case: Desert=1. If the table changes, this warns you.
             throw new RuntimeException("Se esperaba exactamente 1 desierto (resource id=6). Hay: {$expectedDeserts}");
         }
 
@@ -156,7 +156,7 @@ try {
         shuffle($pool);
 
         $updateRes = $pdo->prepare("UPDATE hexagon SET resource_id = :rid WHERE id = :hid");
-        $hexOrder = []; // guardamos orden con resource asignado
+        $hexOrder = []; // store order with assigned resource
 
         for ($i = 0; $i < $hexCount; $i++) {
             $hid = (int)$hexagons[$i]["id"];
@@ -170,7 +170,7 @@ try {
             $hexOrder[] = ["id" => $hid, "resource_id" => $rid];
         }
 
-        // 3) Construir la secuencia ORIGINAL de dice_number y letter (sin NULL) en orden por id
+        // 3) Build the ORIGINAL sequence of dice_number and letter (without NULL) ordered by id
         $seqStmt = $pdo->query(
             "SELECT dice_number, letter
              FROM hexagon
@@ -179,10 +179,10 @@ try {
         );
         $seqRaw = $seqStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $diceSeq = array_map('intval', array_column($seqRaw, 'dice_number')); // lista de 18 números
-        $letterSeq = array_map('strval', array_column($seqRaw, 'letter')); // lista de 18 letras
+        $diceSeq = array_map('intval', array_column($seqRaw, 'dice_number')); // list of 18 numbers
+        $letterSeq = array_map('strval', array_column($seqRaw, 'letter')); // list of 18 letters
 
-        // Validación: debe haber exactamente (hexCount - 1) números si hay 1 desierto
+        // Validation: there must be exactly (hexCount - 1) numbers if there is 1 desert
         if (count($diceSeq) !== $hexCount - 1 || count($letterSeq) !== $hexCount - 1) {
             throw new RuntimeException(
                 "La secuencia de dice_number/letter no NULL (" . count($diceSeq) . "/" . count($letterSeq) .
@@ -190,7 +190,7 @@ try {
             );
         }
 
-        // 4) Reasignar dice_number: desierto => NULL, resto => siguiente de diceSeq
+        // 4) Reassign dice_number: desert => NULL, rest => next from diceSeq
         $updateSeq = $pdo->prepare("UPDATE hexagon SET dice_number = :dn, letter = :lett, is_thief = :thief WHERE id = :hid");
 
         $k = 0;
