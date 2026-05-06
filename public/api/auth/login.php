@@ -39,41 +39,15 @@ if ($username === "" || $password === "") {
     exit;
 }
 
-/* ===============================
-   DATABASE CONNECTION
-   =============================== */
-
-$config = require dirname(__DIR__, 3) . "/src/config/config.php";
-$dbConfig = $config["db"] ?? null;
-
-if (!is_array($dbConfig)) {
-    http_response_code(500);
-    echo json_encode([
-        "ok" => false,
-        "message" => "Database connection error"
-    ]);
-    exit;
-}
-
 try {
-    $pdo = new PDO(
-        sprintf(
-            "mysql:host=%s;dbname=%s;charset=%s",
-            $dbConfig["host"],
-            $dbConfig["name"],
-            $dbConfig["charset"] ?? "utf8mb4"
-        ),
-        $dbConfig["user"],
-        $dbConfig["pass"],
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]
-    );
-} catch (PDOException $e) {
+    require_once dirname(__DIR__) . "/database.php";
+    $pdo = db();
+} catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([
         "ok" => false,
-        "message" => "Database connection error"
+        "message" => "Database connection error",
+        "debug" => $e->getMessage()
     ]);
     exit;
 }
@@ -82,14 +56,24 @@ try {
    AUTHENTICATION
    =============================== */
 
-$stmt = $pdo->prepare("
-    SELECT id, username, password_hash, user_image
-    FROM users
-    WHERE username = :username
-    LIMIT 1
-");
-$stmt->execute(["username" => $username]);
-$userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->prepare("
+        SELECT id, username, password_hash, user_image
+        FROM users
+        WHERE username = :username
+        LIMIT 1
+    ");
+    $stmt->execute(["username" => $username]);
+    $userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        "ok" => false,
+        "message" => "Authentication query error",
+        "debug" => $e->getMessage()
+    ]);
+    exit;
+}
 
 if (!$userRow || !password_verify($password, $userRow["password_hash"])) {
     http_response_code(401);

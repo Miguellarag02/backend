@@ -6,7 +6,24 @@ function db(): PDO {
   static $pdo = null;
   if ($pdo instanceof PDO) return $pdo;
 
-  $config = require dirname(__DIR__, 2) . "/src/config/config.php";
+  $configPathCandidates = [
+    dirname(__DIR__, 2) . "/src/config/config.php",
+    dirname(__DIR__) . "/src/config/config.php",
+  ];
+
+  $configPath = null;
+  foreach ($configPathCandidates as $candidate) {
+    if (is_file($candidate)) {
+      $configPath = $candidate;
+      break;
+    }
+  }
+
+  if ($configPath === null) {
+    throw new RuntimeException("Database config file not found");
+  }
+
+  $config = require $configPath;
   $db = $config["db"];
 
   $dsn = sprintf(
